@@ -1,16 +1,13 @@
 //--------------------------------------------------------------------------------------- 
 //  FILE:    X2Effect_Infighter
-//  AUTHOR:  John Lumpkin (Pavonis Interactive)
-//  PURPOSE: Sets up dodge bonuses for Infighter (Soldier gains +25 dodge against attacks within four tiles (including melee)
+//  AUTHOR:  John Lumpkin (Pavonis Interactive), LWotC Team
+//  PURPOSE: Sets up dodge, defense and crit resistance bonuses for Infighter
 //---------------------------------------------------------------------------------------
 class X2Effect_LW2WotC_Infighter extends X2Effect_Persistent config (LW_SoldierSkills);
 
 var config int INFIGHTER_DODGE_BONUS;
 var config int INFIGHTER_DEFENSE_BONUS;
 var config int INFIGHTER_CRITRES_BONUS;
-
-var config int INFIGHTER_AIM_BONUS;
-var config int INFIGHTER_CRIT_BONUS;
 
 var config int INFIGHTER_MAX_TILES;
 
