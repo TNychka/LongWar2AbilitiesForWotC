@@ -9,7 +9,7 @@ class X2Effect_LW2WotC_Aggression extends X2Effect_Persistent config (LW_Soldier
 var config int AGGRESSION_CONSISTENT_CRIT_BONUS;
 var config int AGGRESSION_CRIT_BONUS_PER_ENEMY;
 var config int AGGRESSION_MAX_CRIT_BONUS;
-var config int AGGRESSION_DIMINISHING_RETURNS;
+var config float AGGRESSION_DIMINISHING_RETURNS;
 var config bool AGG_SQUADSIGHT_ENEMIES_APPLY;
 
 var config int AGGRESSION_CONSISTENT_CRITDAMAGE_BONUS;
@@ -43,7 +43,7 @@ function GetToHitModifiers(XComGameState_Effect EffectState, XComGameState_Unit 
 				if(FinalBonus < default.AGGRESSION_MAX_CRIT_BONUS)
 				{
 					Bonus = default.AGGRESSION_CRIT_BONUS_PER_ENEMY - Round(default.AGGRESSION_DIMINISHING_RETURNS * i);
-					FinalBonus += Clamp(Bonus, 0, default.AGGRESSION_MAX_CRIT_BONUS);
+					FinalBonus += Clamp(Bonus, 0, default.AGGRESSION_MAX_CRIT_BONUS - FinalBonus);
 				}
 			}
 

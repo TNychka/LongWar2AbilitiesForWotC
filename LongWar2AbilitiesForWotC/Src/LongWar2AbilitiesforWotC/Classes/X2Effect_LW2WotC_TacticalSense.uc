@@ -40,7 +40,7 @@ function GetToHitAsTargetModifiers(XComGameState_Effect EffectState, XComGameSta
 			if(FinalBonus < default.TACTICAL_SENSE_MAX_DEF_BONUS)
 			{
 				Bonus = default.TACTICAL_SENSE_DEF_BONUS_PER_ENEMY - Round(default.TACTICAL_SENSE_DIMINISHING_RETURNS * i);
-				FinalBonus += Clamp(Bonus, 0, default.TACTICAL_SENSE_MAX_DEF_BONUS);
+				FinalBonus += Clamp(Bonus, 0, default.TACTICAL_SENSE_MAX_DEF_BONUS - FinalBonus);
 			}
 		}
 
