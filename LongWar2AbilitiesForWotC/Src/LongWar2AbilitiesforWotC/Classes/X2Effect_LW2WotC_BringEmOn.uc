@@ -1,12 +1,14 @@
 //--------------------------------------------------------------------------------------- 
 //  FILE:    X2Effect_BringEmOn
-//  AUTHOR:  John Lumpkin (Pavonis Interactive)
+//  AUTHOR:  John Lumpkin (Pavonis Interactive), LWotC Team
 //  PURPOSE: Sets up damage bonuses for BEO
 //---------------------------------------------------------------------------------------
 class X2Effect_LW2WotC_BringEmOn extends X2Effect_Persistent config (LW_SoldierSkills);
 
+var config int BEO_CONSISTENT_CRITDAMAGE_BONUS;
 var config float BEO_BONUS_CRIT_DAMAGE_PER_ENEMY;
 var config int BEO_MAX_BONUS_CRIT_DAMAGE;
+var config float BEO_DIMINISHING_RETURNS;
 var config bool BEO_SQUADSIGHT_ENEMIES_APPLY;
 var config bool APPLIES_TO_EXPLOSIVES;
 
@@ -18,6 +20,9 @@ function int GetAttackingDamageModifier(XComGameState_Effect EffectState, XComGa
 	local int BadGuys;
 	local X2AbilityToHitCalc_StandardAim StandardHit;
 	local X2Effect_ApplyWeaponDamage WeaponDamageEffect;
+	local int FinalBonus;
+	local int Bonus;
+	local int i;
 
     if(AppliedData.AbilityResultContext.HitResult == eHit_Crit)
     {
@@ -63,7 +68,18 @@ function int GetAttackingDamageModifier(XComGameState_Effect EffectState, XComGa
 				}
 				if (BadGuys > 0)
 				{
-					return clamp (BadGuys * default.BEO_BONUS_CRIT_DAMAGE_PER_ENEMY, 0, default.BEO_MAX_BONUS_CRIT_DAMAGE);
+					FinalBonus = 0;
+
+					for(i = 0; i < BadGuys; i++)
+					{
+						if(FinalBonus < default.BEO_MAX_BONUS_CRIT_DAMAGE)
+						{
+							Bonus = default.BEO_BONUS_CRIT_DAMAGE_PER_ENEMY - default.BEO_DIMINISHING_RETURNS * i;
+							FinalBonus += Clamp(Bonus, 0, default.BEO_MAX_BONUS_CRIT_DAMAGE - FinalBonus);
+						}
+					}
+
+					return FinalBonus + default.BEO_CONSISTENT_CRITDAMAGE_BONUS;
 				}
             }
         }
