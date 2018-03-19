@@ -10,9 +10,21 @@ var config bool NO_STANDARD_ATTACKS_WHEN_ON_FIRE;
 var config array<name> STANDARD_ATTACKS;
 var config int HAIL_OF_BULLETS_AMMO_COST;
 var config int DEMOLITION_AMMO_COST;
+
 var config int SERIAL_CRIT_MALUS_PER_KILL;
+var config int SERIAL_ADDITIONAL_CRIT_MALUS;
 var config int SERIAL_AIM_MALUS_PER_KILL;
-var config bool SERIAL_DAMAGE_FALLOFF;
+var config int SERIAL_ADDITIONAL_AIM_MALUS;
+var config int SERIAL_DAMAGEFALLOFF_PER_KILL;
+var config int SERIAL_ADDITIONAL_DAMAGEFALLOFF;
+
+var config int DFA_CRIT_MALUS_PER_KILL;
+var config int DFA_ADDITIONAL_CRIT_MALUS;
+var config int DFA_AIM_MALUS_PER_KILL;
+var config int DFA_ADDITIONAL_AIM_MALUS;
+var config int DFA_DAMAGEFALLOFF_PER_KILL;
+var config int DFA_ADDITIONAL_DAMAGEFALLOFF;
+
 var config int INSANITY_MIND_CONTROL_DURATION;
 var config bool INSANITY_ENDS_TURN;
 var config int CONCEAL_ACTION_POINTS;
@@ -54,6 +66,7 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 	local X2AbilityCost_Ammo				                    AmmoCost;
 	local X2Condition_UnitInventory			                    NoShotgunsCondition, NoSnipersCondition, NoVektorCondition;
     local X2Effect_LW2WotC_SerialKillStatReductions             SerialKillStatReductions;
+	local X2Effect_LW2WotC_SerialKillStatReductions             DfAKillStatReductions;
     local X2AbilityCost_ActionPoints                            ActionPointCost;
     local X2AbilityToHitCalc_StandardAim                        StandardAim;
     local X2AbilityCooldown                                     Cooldown;
@@ -67,7 +80,8 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
     local X2Effect_PersistentStatChange                         CoveringFireMalusEffect;
     local X2Condition_AbilityProperty                           CoveringFireAbilityCondition;
     local X2Effect_LW2WotC_CancelLongRangePenalty               CancelLongRangePenaltyEffect;
-    local X2Effect_LW2WotC_DeathFromAbove                       DeathEffect;
+    local X2Effect_LW2WotC_DeathFromAbove                       DFADeathEffect;
+	local X2Effect_LW2WotC_Serial								SerialDeathEffect;
 	local X2Condition_OverwatchLimit		                    OWLimitCondition;
 
     // Hail of Bullets - Unusable with shotguns, snipers, and vektor rifles and make its ammo cost configurable
@@ -120,12 +134,24 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 	{
 		SerialKillStatReductions = new class 'X2Effect_LW2WotC_SerialKillStatReductions';
 		SerialKillStatReductions.BuildPersistentEffect(1, false, true, false, 8);
+
 		SerialKillStatReductions.CritReductionPerKill = default.SERIAL_CRIT_MALUS_PER_KILL;
+		SerialKillStatReductions.AdditionalCritReduction = default.SERIAL_ADDITIONAL_CRIT_MALUS;
+
 		SerialKillStatReductions.AimReductionPerKill = default.SERIAL_AIM_MALUS_PER_KILL;
-		SerialKillStatReductions.Damage_Falloff = default.SERIAL_DAMAGE_FALLOFF;
+		SerialKillStatReductions.AdditionalAimReduction = default.SERIAL_ADDITIONAL_AIM_MALUS;
+
+		SerialKillStatReductions.DamageFalloffPerKill = default.SERIAL_DAMAGEFALLOFF_PER_KILL;
+		SerialKillStatReductions.AdditionalDamageFalloff = default.SERIAL_ADDITIONAL_DAMAGEFALLOFF;
+
 		SerialKillStatReductions.SetDisplayInfo (ePerkBuff_Passive, Template.LocFriendlyName, Template.GetMyHelpText(), Template.IconImage, true,, Template.AbilitySourceName);
 		Template.AbilityTargetEffects.AddItem(SerialKillStatReductions);
         
+		SerialDeathEffect = new class'X2Effect_LW2WotC_Serial';
+		SerialDeathEffect.BuildPersistentEffect(1, true, false, false);
+		SerialDeathEffect.SetDisplayInfo(0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
+		Template.AddTargetEffect(SerialDeathEffect);
+
         `LOG("LongWar2AbilitiesForWotc: Modifying Serial");
 	}
 
@@ -138,10 +164,24 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 		CancelLongRangePenaltyEffect.SetDisplayInfo (0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, false,, Template.AbilitySourceName);
 		Template.AddTargetEffect(CancelLongRangePenaltyEffect);
 
-		DeathEffect = new class'X2Effect_LW2WotC_DeathFromAbove';
-		DeathEffect.BuildPersistentEffect(1, true, false, false);
-		DeathEffect.SetDisplayInfo(0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
-		Template.AddTargetEffect(DeathEffect);
+		DFADeathEffect = new class'X2Effect_LW2WotC_DeathFromAbove';
+		DFADeathEffect.BuildPersistentEffect(1, true, false, false);
+		DFADeathEffect.SetDisplayInfo(0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
+		Template.AddTargetEffect(DFADeathEffect);
+
+		DFAKillStatReductions = new class 'X2Effect_LW2WotC_SerialKillStatReductions';
+
+		DFAKillStatReductions.CritReductionPerKill = default.SERIAL_CRIT_MALUS_PER_KILL;
+		DFAKillStatReductions.AdditionalCritReduction = default.SERIAL_ADDITIONAL_CRIT_MALUS;
+
+		DFAKillStatReductions.AimReductionPerKill = default.SERIAL_AIM_MALUS_PER_KILL;
+		DFAKillStatReductions.AdditionalAimReduction = default.SERIAL_ADDITIONAL_AIM_MALUS;
+
+		DFAKillStatReductions.DamageFalloffPerKill = default.SERIAL_DAMAGEFALLOFF_PER_KILL;
+		DFAKillStatReductions.AdditionalDamageFalloff = default.SERIAL_ADDITIONAL_DAMAGEFALLOFF;
+
+		DFAKillStatReductions.SetDisplayInfo (ePerkBuff_Passive, Template.LocFriendlyName, Template.GetMyHelpText(), Template.IconImage, true,, Template.AbilitySourceName);
+		Template.AbilityTargetEffects.AddItem(DFAKillStatReductions);
 
         `LOG("LongWar2AbilitiesForWotc: Modifying Death From Above");
 	}

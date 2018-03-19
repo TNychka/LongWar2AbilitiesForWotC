@@ -1,3 +1,9 @@
+///---------------------------------------------------------------------------------------
+//  FILE:    X2Effect_LW2WotC_DeathFromAbove
+//  AUTHOR:  Favid, LWotC Team
+//  PURPOSE: Modified version of vanilla Death from Above that can be limited in the amount of bonus shots it grants
+//--------------------------------------------------------------------------------------- 
+//---------------------------------------------------------------------------------------
 class X2Effect_LW2WotC_DeathFromAbove extends X2Effect_DeathFromAbove config (LW_SoldierSkills);
 
 var config bool ALLOW_DFA_DT_COMBO;
