@@ -56,6 +56,8 @@ var config int COMMISSAR_HIT_BONUS;
 var config int BOMBARDIER_BONUS_RANGE_TILES;
 var config int FAILSAFE_PCT_CHANCE;
 var config int SAPPER_BONUS_ENVIRONMENT_DAMAGE;
+var config int ADVANCEDFIRECONTROL_BONUS;
+var config bool ADVANCEDFIRECONTROL_CRIT;
 
 var localized string LocDenseSmokeEffect;
 var localized string LocDenseSmokeEffectDescription;
@@ -132,6 +134,7 @@ static function array<X2DataTemplate> CreateTemplates()
 	Templates.AddItem(BastionCleanse());
 	Templates.AddItem(Sapper());
 	Templates.AddItem(NeedleGrenades());
+	Templates.AddItem(AdvancedFireControl());
 
 	return Templates;
 }
@@ -1860,6 +1863,43 @@ static function X2AbilityTemplate NeedleGrenades()
     
 	// Event listener defined in X2EventListener_Sapper will check for this ability to override the boolean denoting that an enemy was killed by an explosion
 	Template = PurePassive('LW2WotC_NeedleGrenades', "img:///UILibrary_LW_PerkPack.LW_AbilityNeedleGrenades");
+
+	return Template;
+}
+
+// Perk name:		Advanced Fire Control
+// Perk effect:		Gain +15 aim on reaction shots
+static function X2AbilityTemplate AdvancedFireControl()
+{
+	local X2AbilityTemplate						Template;
+	local X2AbilityTargetStyle                  TargetStyle;
+	local X2AbilityTrigger						Trigger;
+	local X2Effect_ModifyReactionFire           ReactionFire;
+
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'AdvancedFireControl');
+	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_coolpressure";
+
+	Template.AbilitySourceName = 'eAbilitySource_Perk';
+	Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
+	Template.Hostility = eHostility_Neutral;
+
+	Template.AbilityToHitCalc = default.DeadEye;
+
+	TargetStyle = new class'X2AbilityTarget_Self';
+	Template.AbilityTargetStyle = TargetStyle;
+
+	Trigger = new class'X2AbilityTrigger_UnitPostBeginPlay';
+	Template.AbilityTriggers.AddItem(Trigger);
+
+	ReactionFire = new class'X2Effect_ModifyReactionFire';
+	ReactionFire.bAllowCrit = default.ADVANCEDFIRECONTROL_CRIT;
+	ReactionFire.ReactionModifier = default.ADVANCEDFIRECONTROL_BONUS;
+	ReactionFire.BuildPersistentEffect(1, true, true, true);
+	ReactionFire.SetDisplayInfo(ePerkBuff_Passive, Template.LocFriendlyName, Template.GetMyLongDescription(), Template.IconImage,,,Template.AbilitySourceName);
+	Template.AddTargetEffect(ReactionFire);
+
+	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
+	//  NOTE: No visualization on purpose!
 
 	return Template;
 }
