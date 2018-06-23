@@ -8,6 +8,7 @@ class VanillaTemplateMods extends X2StrategyElement config (LW_SoldierSkills);
 var config bool NO_MELEE_ATTACKS_WHEN_ON_FIRE;
 var config bool NO_STANDARD_ATTACKS_WHEN_ON_FIRE;
 var config array<name> STANDARD_ATTACKS;
+var config bool HAIL_OF_BULLETS_WEAPON_RESTRICTIONS;
 var config int HAIL_OF_BULLETS_AMMO_COST;
 var config int DEMOLITION_AMMO_COST;
 
@@ -33,10 +34,12 @@ var config int RUPTURE_CRIT_BONUS;
 var config int AID_PROTOCOL_COOLDOWN;
 var config int SATURATION_FIRE_AMMO_COST;
 var config int FUSE_COOLDOWN;
+var config bool HAYWIRE_PROTOCOL_ONCE_PER_TARGET;
 var config int COVERING_FIRE_OFFENSE_MALUS;
 var config int REVIVAL_PROTOCOL_CHARGES_CV;
 var config int REVIVAL_PROTOCOL_CHARGES_MG;
 var config int REVIVAL_PROTOCOL_CHARGES_BM;
+var config bool OVERWATCH_SHOTS_LIMIT;
 
 var localized string LocCoveringFire;
 var localized string LocCoveringFireMalus;
@@ -79,29 +82,32 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
     local X2Condition_UnitEffects                               NotHaywiredCondition;
     local X2Effect_PersistentStatChange                         CoveringFireMalusEffect;
     local X2Condition_AbilityProperty                           CoveringFireAbilityCondition;
-    local X2Effect_LW2WotC_CancelLongRangePenalty               CancelLongRangePenaltyEffect;
-    local X2Effect_LW2WotC_DeathFromAbove                       DFADeathEffect;
 	local X2Effect_LW2WotC_Serial								SerialDeathEffect;
+    local X2Effect_WOTC_APA_Class_NegateRangePenalty            APA_CancelLongRangePenaltyEffect;
+    local X2Effect_LW2WotC_DeathFromAbove                       DeathEffect;
 	local X2Condition_OverwatchLimit		                    OWLimitCondition;
 
     // Hail of Bullets - Unusable with shotguns, snipers, and vektor rifles and make its ammo cost configurable
     if (Template.DataName == 'HailofBullets')
 	{
-		NoShotgunsCondition = new class'X2Condition_UnitInventory';
-		NoShotgunsCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
-		NoShotgunsCondition.ExcludeWeaponCategory = 'shotgun';
-		Template.AbilityShooterConditions.AddItem(NoShotgunsCondition);
+        if(default.HAIL_OF_BULLETS_WEAPON_RESTRICTIONS)
+        {
+            NoShotgunsCondition = new class'X2Condition_UnitInventory';
+	        NoShotgunsCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
+	        NoShotgunsCondition.ExcludeWeaponCategory = 'shotgun';
+	        Template.AbilityShooterConditions.AddItem(NoShotgunsCondition);
 	
-		NoSnipersCondition = new class'X2Condition_UnitInventory';
-		NoSnipersCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
-		NoSnipersCondition.ExcludeWeaponCategory = 'sniper_rifle';
-		Template.AbilityShooterConditions.AddItem(NoSnipersCondition);
+	        NoSnipersCondition = new class'X2Condition_UnitInventory';
+	        NoSnipersCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
+	        NoSnipersCondition.ExcludeWeaponCategory = 'sniper_rifle';
+	        Template.AbilityShooterConditions.AddItem(NoSnipersCondition);
 
-		NoVektorCondition = new class'X2Condition_UnitInventory';
-		NoVektorCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
-		NoVektorCondition.ExcludeWeaponCategory = 'vektor_rifle';
-		Template.AbilityShooterConditions.AddItem(NoVektorCondition);
-
+	        NoVektorCondition = new class'X2Condition_UnitInventory';
+	        NoVektorCondition.RelevantSlot=eInvSlot_PrimaryWeapon;
+	        NoVektorCondition.ExcludeWeaponCategory = 'vektor_rifle';
+	        Template.AbilityShooterConditions.AddItem(NoVektorCondition);
+        }
+		
 		for (k = 0; k < Template.AbilityCosts.length; k++)
 		{
 			AmmoCost = X2AbilityCost_Ammo(Template.AbilityCosts[k]);
@@ -159,15 +165,18 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 	if (Template.DataName == 'DeathFromAbove')
 	{
 		Template.AbilityTargetEffects.Length = 0;
-		CancelLongRangePenaltyEffect = New class'X2Effect_LW2WotC_CancelLongRangePenalty';
-		CancelLongRangePenaltyEffect.BuildPersistentEffect (1, true, false);
-		CancelLongRangePenaltyEffect.SetDisplayInfo (0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, false,, Template.AbilitySourceName);
-		Template.AddTargetEffect(CancelLongRangePenaltyEffect);
 
-		DFADeathEffect = new class'X2Effect_LW2WotC_DeathFromAbove';
-		DFADeathEffect.BuildPersistentEffect(1, true, false, false);
-		DFADeathEffect.SetDisplayInfo(0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
-		Template.AddTargetEffect(DFADeathEffect);
+        APA_CancelLongRangePenaltyEffect = new class'X2Effect_WOTC_APA_Class_NegateRangePenalty';
+		APA_CancelLongRangePenaltyEffect.BuildPersistentEffect (1, true, false);
+		APA_CancelLongRangePenaltyEffect.SetDisplayInfo (0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, false,, Template.AbilitySourceName);
+        APA_CancelLongRangePenaltyEffect.RangePenaltyPercentNegated = class'X2Effect_LW2WotC_DeathFromAbove'.default.DFA_SQUADSIGHT_AIM_MODIFIER;
+        APA_CancelLongRangePenaltyEffect.bLimitToSquadSightRange = true;
+		Template.AddTargetEffect(APA_CancelLongRangePenaltyEffect);
+
+		DeathEffect = new class'X2Effect_LW2WotC_DeathFromAbove';
+		DeathEffect.BuildPersistentEffect(1, true, false, false);
+		DeathEffect.SetDisplayInfo(0, Template.LocFriendlyName, Template.LocLongDescription, Template.IconImage, true,, Template.AbilitySourceName);
+		Template.AddTargetEffect(DeathEffect);
 
 		DFAKillStatReductions = new class 'X2Effect_LW2WotC_SerialKillStatReductions';
 
@@ -373,25 +382,28 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 	}
 
     // Haywire Protocol - Changes so that individual enemies can only be hacked once per mission
-    if (Template.DataName == 'FinalizeHaywire')
-	{
-		HaywiredEffect = new class'X2Effect_Persistent';
-		HaywiredEffect.EffectName = 'Haywired';
-		HaywiredEffect.BuildPersistentEffect(1, true, false);
-		HaywiredEffect.bDisplayInUI = false;
-		HaywiredEffect.bApplyOnMiss = true;
-		Template.AddTargetEffect(HaywiredEffect);
+    if(default.HAYWIRE_PROTOCOL_ONCE_PER_TARGET)
+    {
+        if (Template.DataName == 'FinalizeHaywire')
+	    {
+		    HaywiredEffect = new class'X2Effect_Persistent';
+		    HaywiredEffect.EffectName = 'Haywired';
+		    HaywiredEffect.BuildPersistentEffect(1, true, false);
+		    HaywiredEffect.bDisplayInUI = false;
+		    HaywiredEffect.bApplyOnMiss = true;
+		    Template.AddTargetEffect(HaywiredEffect);
         
-        `LOG("LongWar2AbilitiesForWotc: Modifying Finalize Haywire");
-	}
-	if (Template.DataName == 'HaywireProtocol') 
-	{
-		NotHaywiredCondition = new class 'X2Condition_UnitEffects';
-		NotHaywiredCondition.AddExcludeEffect ('Haywired', 'AA_NoTargets'); 
-		Template.AbilityTargetConditions.AddItem(NotHaywiredCondition);
+            `LOG("LongWar2AbilitiesForWotc: Modifying Finalize Haywire");
+	    }
+	    if (Template.DataName == 'HaywireProtocol') 
+	    {
+		    NotHaywiredCondition = new class 'X2Condition_UnitEffects';
+		    NotHaywiredCondition.AddExcludeEffect ('Haywired', 'AA_NoTargets'); 
+		    Template.AbilityTargetConditions.AddItem(NotHaywiredCondition);
         
-        `LOG("LongWar2AbilitiesForWotc: Modifying Haywire Protocol");
-	}
+            `LOG("LongWar2AbilitiesForWotc: Modifying Haywire Protocol");
+	    }
+    }
 
     // Covering Fire - This makes overwatch shots apply malus if the user has Covering Fire
     switch (Template.DataName)
@@ -462,14 +474,16 @@ function ModifyAbilitiesGeneral(X2AbilityTemplate Template, int Difficulty)
 
     // Prevent multiple overwatch shots from triggering on the same target on the same turn
     // Only applies to Guardian, Sentinel, and Rapid Reaction
-    if (Template.DataName == 'OverwatchShot'
-        || Template.DataName == 'LongWatchShot'
-        || Template.DataName == 'PistolOverwatchShot') 
+    if(default.OVERWATCH_SHOTS_LIMIT)
     {
-	    OWLimitCondition = new class 'X2Condition_OverwatchLimit';
-        Template.AbilityTargetConditions.AddItem(OWLimitCondition);
+        if (Template.DataName == 'OverwatchShot'
+            || Template.DataName == 'LongWatchShot'
+            || Template.DataName == 'PistolOverwatchShot') 
+        {
+	        OWLimitCondition = new class 'X2Condition_OverwatchLimit';
+            Template.AbilityTargetConditions.AddItem(OWLimitCondition);
 
-       `LOG("LongWar2AbilitiesForWotc: Modifying " $ Template.DataName $ " to add a per-target overwatch limit");
+           `LOG("LongWar2AbilitiesForWotc: Modifying " $ Template.DataName $ " to add a per-target overwatch limit");
+        }
     }
-
 }

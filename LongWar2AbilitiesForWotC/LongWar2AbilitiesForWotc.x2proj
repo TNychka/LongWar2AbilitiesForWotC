@@ -39,9 +39,6 @@
     <Content Include="Config\XComGameData.ini">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Config\XComGameData_CharacterStats.ini">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Config\XComGameData_SoldierSkills.ini">
       <SubType>Content</SubType>
     </Content>
@@ -64,6 +61,12 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Localization\LongWar2AbilitiesForWotc.int">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\LongWar2AbilitiesForWotc.jpn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\XComGame.jpn">
       <SubType>Content</SubType>
     </Content>
     <Content Include="ReadMe.txt" />
@@ -301,6 +304,9 @@
     <Content Include="Src\LongWar2AbilitiesforWotC\Classes\X2Effect_LW2WotC_WilltoSurvive.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\LongWar2AbilitiesforWotC\Classes\X2Effect_WOTC_APA_Class_NegateRangePenalty.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\LongWar2AbilitiesforWotC\Classes\X2EventListener_LW2WotC.uc">
       <SubType>Content</SubType>
     </Content>
@@ -314,9 +320,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\LongWar2AbilitiesforWotC\Classes\X2TargetingMethod_LW2WotC_AreaSuppression.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\LongWar2AbilitiesforWotC\Classes\XComGameState_Effect_LW2WotC_SteadyWeaponListener.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\LongWar2AbilitiesforWotC\Classes\XMBAbility.uc">
